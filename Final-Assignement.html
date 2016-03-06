@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Data Visualization Final Assignment</title>
+    <script src="http://code.jquery.com/jquery-1.10.2.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="d3.js"></script>
+    <style>
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: crispEdges;
+        }
+
+        body{ font : 12px sans-serif;}
+        .rect { opacity: .7; }
+        .axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        #staticValues {
+            float:left;
+            width:30%;
+            height:auto;
+        }
+        #inputParameters {
+            float:left;
+            height:auto;
+            width:30%;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<h2> Projectile Motion</h2>
+    <div id ="staticValues">
+        <b>Calculations :</b><br>
+        Time of Flight (seconds) :<input type="text" name="flighttime" id="flighttime" readonly><br>
+        Maximum height (meters):<input type="text" name="maxHeight" id="maxHeight" readonly><br>
+        Range (meters): <input type="text" name="range" id="range" readonly><br>
+    </div>
+    <div id="inputParameters">
+        <b>Input Parameters:</b><br>
+        Initial Velocity (m/s) : <input type="text" name="initialvelocity" id="initialvelocity" value =  50><br>
+        Angle (degree): <input type="text" name="angle" id="angle" value = 45><br>
+        Select your planet: <select input = "gravity" name="gravity" id="gravity" onclick="removesvgelement()">
+            <option value=1.622>Moon</option>
+            <option value=3.61>Mercury</option>
+            <option value=8.83>Venus</option>
+            <option selected ="selected" value=9.81>Earth</option>
+            <option value=3.75>Mars</option>
+            <option value=26>Jupiter</option>
+            <option value=11.20>Saturn</option>
+            <option value=10.50>Uranus</option>
+            <option value=13.30>Neptune</option>
+            <option value=0.61>Pluto</option>
+        </select>
+    </div>
+    <button onclick="removesvgelement()">Draw</button>
+
+<script type="text/javascript">
+
+    var w=1300, h=500;
+    var padding=30;
+
+    console.log(angle);
+
+    var svg = d3.select("body")
+            .append("svg")
+            .attr("width",w)
+            .attr("height",h+20);
+    createtarget();
+    createsvgelements();
+
+    function removesvgelement(){
+        d3.selectAll("path").remove();
+        d3.selectAll("circle").remove();
+        createsvgelements()
+//        rescaleXAxis();
+//        rescaleYAxis();
+    }
+
+    function createtarget(){
+        var random = Math.random()*700
+        lineData = [1,2,3]
+        svg.selectAll("rect")
+                .data(lineData)
+                .enter()
+                .append("rect")
+                .attr("class", "rect")
+                .attr("x",430 + random )
+                .attr("y", h-25)
+                .attr("width",100)
+                .attr("height",30)
+                .attr("fill","#F5D76E");
+
+        svg.selectAll("text")
+                .data(lineData)
+                .enter()
+                .append("text")
+                .text("Target")
+                .attr("x",455 + random )
+                .attr("y",h-15)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "12px")
+                .attr("fill", "#22313F");
+    }
+
+
+//    function rescaleXAxis() {
+//        xScale.domain([0,document.getElementById("range").value])
+//        d3.select(".xaxis")
+//                .transition().duration(1500).ease("sin-in-out")
+//                .call(xaxis);
+//
+//    }
+//
+//    function rescaleYAxis() {
+//        yScale.domain([document.getElementById("maxHeight").value,0])
+//        d3.select(".yaxis")
+//                .transition().duration(1500).ease("sin-in-out")
+//                .call(yaxis);
+//
+//    }
+
+    function createsvgelements() {
+
+        var xScale = d3.scale.linear()
+                .domain([0, 1300])
+                .range([0, 1300]);
+        var yScale = d3.scale.linear()
+                .domain([500, 0])
+                .range([0, 500]);
+
+        var xaxis = d3.svg.axis().scale(xScale).orient("bottom");
+        var yaxis = d3.svg.axis().scale(yScale).orient("left");
+
+        svg.append("g")
+                .attr("class", "xaxis")
+                .attr("transform", "translate(30," + (h+5) + ")")
+                .call(xaxis);
+
+        svg.append("g")
+                .attr("class", "yaxis")
+                .attr("transform", "translate(" + padding + ",05)")
+                .call(yaxis);
+
+        lineData = constructverticalheight(1300);
+//
+        svg.selectAll("circle")
+                .data(lineData)
+                .enter().append("circle")
+                .attr("r", 10)
+//                .attr("fill", "red")
+                .attr("cx", 30)
+                .attr("cy", h-5 );
+
+        svg.selectAll("circle")
+                .transition()
+                .delay(50)
+                .duration(700)
+                .attr("fill", "none")
+                .attr("stroke", "red")
+                .attr("cx", function(d, i){return d["x"]})
+                .attr("cy", function(d, i){return d["y"]})
+                .ease("linear");
+
+        var path = svg.append("path")
+                .data([lineData])
+                .attr("d", d3.svg.line()
+                        .tension(0) // Catmull–Rom
+                        .interpolate("linear"));
+
+        var circle = svg.append("circle")
+                .attr("r", 13)
+                .attr("transform", "translate(" + lineData[0] + ")");
+
+        transition();
+
+        function transition() {
+            circle.transition()
+                    .delay(100)
+                    .duration(1000)
+                    .attrTween("transform", translateAlong(path.node()))
+                    .each("end", transition);
+        }
+
+// Returns an attrTween for translating along the specified path element.
+        function translateAlong(path) {
+            var l = path.getTotalLength();
+            return function(d, i, a) {
+                return function(t) {
+                    var p = path.getPointAtLength(t * l);
+                    return "translate(" + p.x + "," + p.y + ")";
+                };
+            };
+        }
+        console.log(lineData);
+        var lineFunction = d3.svg.line()
+                .x(function (d) {
+                    return d.x;
+                })
+                .y(function (d) {
+                    return d.y;
+                })
+                .interpolate("linear");
+
+        // add element and transition in
+        var path = svg.append('path')
+                .attr('class', 'line')
+                .attr("stroke", "blue")
+                .attr("stroke-width", 2)
+                .attr("fill", "none")
+                .attr('d', lineFunction(lineData[0]))
+                .transition()
+//                .delay(1000)
+                .duration(1000)
+                .attrTween('d', pathTween);
+
+//                var circle = svg.append('path')
+//                .attr('class', 'circle')
+//                .attr("stroke", "blue")
+//                .attr("stroke-width", 2)
+//                .attr("fill", "none")
+//                .attr('d', lineFunction(lineData[0]))
+//                .transition()
+//                .duration(1000)
+//                .attrTween('d', pathTween);
+//
+
+
+        function pathTween() {
+            var interpolate = d3.scale.quantile()
+                    .domain([0,1])
+                    .range(d3.range(1, lineData.length + 1));
+            return function(t) {
+                return lineFunction (lineData.slice(0, interpolate(t)));
+
+            };
+        }
+    }
+
+    function constructverticalheight(xmax){
+
+        var initialVelocity = document.getElementById("initialvelocity").value;
+        var angle = document.getElementById("angle").value;
+//        if (typeof angle != 'number' || typeof initialVelocity != 'number'  ){alert("Please input only numeric values");}
+//        else{
+        if (angle<0 || angle>90){alert("Angle should be between 0 and 90 degrees");}
+        else{
+        var gravity = document.getElementById("gravity").value;
+        var angle = angle*(Math.PI)/180
+        console.log(initialVelocity);
+
+        var flighttime = ((2 * initialVelocity * Math.sin(angle))/gravity);
+        document.getElementById("flighttime").value = flighttime.toFixed(2);
+
+        var maxHeight = (((initialVelocity * initialVelocity) * ((1 - Math.cos(2 * (angle)))/2))/(2 * gravity));
+        document.getElementById("maxHeight").value = maxHeight.toFixed(2);
+
+        var range = (((initialVelocity * initialVelocity)*(Math.sin(2 * angle)))/gravity);
+        document.getElementById("range").value = range.toFixed(2);
+
+        var linedata = [];
+        x = 0;
+        xvalues =[]
+        while (x<xmax){
+            xvalues.push(x)
+            x+=25;
+        }
+        console.log(xvalues);
+        var yvalues = [];
+        for (var i = 0; i < xvalues.length; i++){
+            var verticalheight = (Math.tan(angle) * xvalues[i])  - (gravity/(2 * (Math.pow(initialVelocity,2)*((1 + Math.cos(2 * (angle)))/2)))) * (Math.pow(xvalues[i],2));
+//            verticalheight = verticalheight ;
+            if (verticalheight>0){
+                var d = { "x":xvalues[i]+30 ,   "y": h - verticalheight+5};
+                yvalues.push(verticalheight);
+                linedata.push(d)};
+        }
+        console.log(yvalues);
+        return linedata;}
+//    }
+    }
+
+</script>
+</body>
+</html>
