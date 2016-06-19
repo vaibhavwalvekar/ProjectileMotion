@@ -4,8 +4,58 @@
     <meta charset="utf-8">
     <title>Data Visualization Final Assignment</title>
     <script src="http://code.jquery.com/jquery-1.10.2.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     <script type="text/javascript" src="d3.js"></script>
+
     <style>
+        .button {
+      display: inline-block;
+      border-radius: 4px;
+      background-color: #34495e;
+      border: none;
+      color: #FFFFFF;
+      text-align: center;
+      font-size: 24px;
+      /*padding: 20px;*/
+      width: 120px;
+      transition: all 0.5s;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .button span {
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+      transition: 0.5s;
+    }
+
+    .button span:after {
+      content: '»';
+      position: absolute;
+      opacity: 0;
+      top: 0;
+      right: -20px;
+      transition: 0.5s;
+    }
+
+    .button:hover span {
+      padding-right: 25px;
+    }
+
+    .button:hover span:after {
+      opacity: 1;
+      right: 0;
+    }
+        .ui-slider  {
+            width: 200px;
+            padding-left: 5px;
+            color: #777777;
+            background: #3498db;
+} 
+
+        }
         .axis path,
         .axis line {
             fill: none;
@@ -13,78 +63,223 @@
             shape-rendering: crispEdges;
         }
 
-        body{ font : 12px sans-serif;}
+        body{ font : 12px sans-serif; background-color: white;}
         .rect { opacity: .7; }
         .axis text {
             font-family: sans-serif;
             font-size: 11px;
         }
-        #staticValues {
-            float:left;
-            width:30%;
-            height:auto;
-        }
-        #inputParameters {
-            float:left;
-            height:auto;
-            width:30%;
-        }
-    </style>
+        .arrow{
+        stroke-width:5;
+        stroke:#000;
+        stroke-dasharray:5, 5;
+    }
 
+    #arrow{
+        stroke-width:1;
+        stroke-dasharray:0; 
+    }
+
+    h2{
+    background-color: white;
+    }
+
+
+    fieldset {border: 5px solid gray;
+                margin-bottom:5px;
+                width: 270px}
+
+    </style>
 </head>
 
 <body>
 
-<h2> Projectile Motion</h2>
-    <div id ="staticValues">
-        <b>Calculations :</b><br>
-        Time of Flight (seconds) :<input type="text" name="flighttime" id="flighttime" readonly><br>
-        Maximum height (meters):<input type="text" name="maxHeight" id="maxHeight" readonly><br>
-        Range (meters): <input type="text" name="range" id="range" readonly><br>
+<h1> <center>Concepts of Projectile Motion</center></h1>
+      
+   
+<div id="container"  style=" overflow :auto" >
+    
+     <div id="inputParameters" style="float: left; ">
+        <fieldset style="float:left; width: 350px;">
+            <legend><b>Input</b></legend>
+        <div>
+            <label ><b> Initial Velocity (m/s) :</b></label>
+            <input type="number" style="height: 12px" name="initialvelocity" id="initialvelocity" maxlength="2" min = "0" >
+        </div>
+            <label for="amount"><b>Angle (degree) :</b></label>
+            <input type="text" size="1" id="amount" readonly style="border:0; color:black; font-weight:bold; ">  
+        <div id="slider" >  </div>
+        <div>
+            <label ><b> Gravity :</b></label>
+            <select input = "gravity" name="gravity" id="gravity" style="height: 18px" >
+                <!--<option selected ="selected">Select your Planet </option>-->
+                <option value=1.622>Moon : 1.622</option>
+                <option value=3.61>Mercury : 3.61</option>
+                <option value=8.83>Venus : 8.83</option>
+                <option value=9.81 selected ="selected">Earth : 9.81</option>
+                <option value=3.75>Mars : 3.75</option>
+                <option value=26>Jupiter : 26</option>
+                <option value=11.20>Saturn : 11.20</option>
+                <option value=10.50>Uranus : 10.50</option>
+                <option value=13.30>Neptune : 13.30</option>
+                <option value=0.61>Pluto : 0.61</option>
+            </select>
+            &nbsp; &nbsp; &nbsp;
+            <button class="button" onclick="removesvgelement()">Strike</button>
+        </div>
+        </fieldset>
+
     </div>
-    <div id="inputParameters">
-        <b>Input Parameters:</b><br>
-        Initial Velocity (m/s) : <input type="text" name="initialvelocity" id="initialvelocity" value =  50><br>
-        Angle (degree): <input type="text" name="angle" id="angle" value = 45><br>
-        Select your planet: <select input = "gravity" name="gravity" id="gravity" onclick="removesvgelement()">
-            <option value=1.622>Moon</option>
-            <option value=3.61>Mercury</option>
-            <option value=8.83>Venus</option>
-            <option selected ="selected" value=9.81>Earth</option>
-            <option value=3.75>Mars</option>
-            <option value=26>Jupiter</option>
-            <option value=11.20>Saturn</option>
-            <option value=10.50>Uranus</option>
-            <option value=13.30>Neptune</option>
-            <option value=0.61>Pluto</option>
-        </select>
+
+    <div id="staticValues" style="float: left; margin-left:80px; width: 350px">
+        <fieldset style="float:left; height: 96px; width: 350px;">
+            <legend><b>Output</b></legend>
+        <div id="ft">
+            <b style="float: left">Time of Flight (seconds) :</b>
+            <b id="flighttime" style=" float: left; margin-left:10px; height: 10px"></b>
+            <br>
+            <br>
+            <b style="float: left;">Maximum height (meters):</b>
+            <b id="maxHeight" style="float: left; margin-left:10px; height: 10px"></b>
+            <br>
+            <br>
+            <b style="float: left">Range (meters):</b>
+            <b id="range" style="float: left; margin-left:10px; height: 10px" ></b><br>
+        </div>
+    </fieldset>
     </div>
-    <button onclick="removesvgelement()">Draw</button>
+
+    <div id="dialog-confirm" title="Storyboard - Things to know!" style="float: left;"></div>
+    
+   <div id="formulas" style="float: left; width: 350px height: 100px; margin-left:100px;">
+    <fieldset style="float:left; width: 350px height: 100px;">
+        <legend> <b>Equation for Projectile Path</b></legend>
+        <div>
+        <img src="main.png" style=" width:340px; height:87px; float:right;">
+        </div>
+    </fieldset>
+    </div>
+    
+</div>
+
+<div id="container2">
+    <fieldset style="float:left">
+        <legend> <b>Concepts</b></legend>
+    <div id="content" style="float:left">
+            <input type="text" size="35" id="details" readonly style="float: left; border:0; color:black; font-weight:bold;"> 
+            
+    </div></fieldset>
+    <div id="chart"></div>
+</div>
+
+    
 
 <script type="text/javascript">
 
-    var w=1300, h=500;
+    var w=1000, h=500;
     var padding=30;
-
+    var random = Math.random()*500
+    var angle = 45;
+    var range = 0;
+    var maxHeight = 0;
+    type = ['arrow'];
+    var count = 0
     console.log(angle);
 
-    var svg = d3.select("body")
+    var svg = d3.select("#chart")
             .append("svg")
             .attr("width",w)
             .attr("height",h+20);
     createtarget();
-    createsvgelements();
+    createaxis();
+    storyboard();
+
+    knowledgetext = "<b>Things to know </b><br> <ul><li>Time of Flight is the time taken by the projectile to go from source to destination.</li><li>Maximum height is the highest point that a projectile reaches.</li><li>Range is the maximum horizontal distance that a projectile covers.</li></ul>" + '<img src="time-h-range.png"style="  height:150px; width:300px;">' +" <br><ul><li>Horizontal velocity is always constant.</li><li>Vertical velocity changes due to the action of gravitational force on the body.</li><li>Vertical velocity is zero at the maximum height of the projectile.</li></ul>" +'<img src="velocity.png"style="  height:100px; width:300px;">' 
+    document.getElementById("content").innerHTML = knowledgetext;
 
     function removesvgelement(){
-        d3.selectAll("path").remove();
-        d3.selectAll("circle").remove();
-        createsvgelements()
-//        rescaleXAxis();
-//        rescaleYAxis();
+        if (document.getElementById("initialvelocity").value >0){
+            d3.selectAll("path").remove();
+            d3.selectAll("circle").remove();
+            d3.selectAll("rect.vector").remove();
+            d3.selectAll("text.vectortext").remove();
+            d3.selectAll("text.vectortext1").remove();
+            d3.selectAll("text.vectortext2").remove();
+            d3.selectAll("text.vectortext3").remove();
+            d3.selectAll("line.horzvector").remove();
+            d3.selectAll("line.vertvector").remove();
+            d3.selectAll("line.vertheight").remove();
+
+            count = 0
+
+            createsvgelements(angle);
+            createaxis();
+            // createsvgelements(angle);
+            displaymsg();}
+
+        else{alert("Initial Velocity should be greater than 0");}
+
+    function displaymsg() {
+
+        lowerlimit = random + 400;
+        upperlimit = random + 500;
+        console.log(lowerlimit);
+        console.log(upperlimit);
+        if (range > lowerlimit && range < upperlimit) {
+
+            knowledgetext = "<b><font size='3' color='green'>Target Hit. Well Done. </font></b><br> Important things to note, there may be more than one combination of intial velocity, angle and gravity to hit the target, the range of the projectile is maximum when angle of projection is 45 degrees and small increase in initial velocity can cause large change in range. <br><br><b>Things to know </b><br> <ul><li>Time of Flight is the time taken by the projectile to go from source to destination.</li><li>Maximum height is the highest point that a projectile reaches.</li><li>Range is the maximum horizontal distance that a projectile covers.</li></ul>"  +'<img src="time-h-range.png"style="  height:150px; width:300px;">' +" <br> You can use below formulas to calculate horizontal, vertical and resultant velocities at each point. <ul><li>Horizontal velocity is always constant.</li><li>Vertical velocity changes due to the action of gravitational force on the body.</li><li>Vertical velocity is zero at the maximum height of the projectile.</li></ul>" +'<img src="velocity.png"style="  height:100px; width:300px;">' 
+            document.getElementById("content").innerHTML = knowledgetext;
+            $("#result").text("Target Hit, Well Done!");
+            svg.selectAll("rect")
+                    .attr("class", "rect")
+                    .attr("width", 100)
+                    .attr("height", 30)
+                    .attr("fill", "green");
+        }
+        else{
+            if (range>upperlimit)
+                {shoottext = "overshoot";
+                velocitytext = "decrease";
+                gravitytext = "higher";
+                        }
+            else{shoottext = "undershoot";
+                velocitytext = "increase";
+                gravitytext = "lower";}
+            knowledgetext = "<b><font size='3' color='red'>Target Missed. Try Again. </font></b><br> As you have <font color='red'>" + shoottext + "</font> the target, you would either need to <font color='red'>" + velocitytext +"</font> velocity or change the planet to having <font color='red'>"+ gravitytext + "</font> gravity. <br><br><b>Things to know </b><br> <ul><li>Time of Flight is the time taken by the projectile to go from source to destination.</li><li>Maximum height is the highest point that a projectile reaches.</li><li>Range is the maximum horizontal distance that a projectile covers.</li></ul>"  +'<img src="time-h-range.png"style="  height:150px; width:300px;">' +" <br> You can use below formulas to calculate horizontal, vertical and resultant velocities at each point. <ul><li>Horizontal velocity is always constant.</li><li>Vertical velocity changes due to the action of gravitational force on the body.</li><li>Vertical velocity is zero at the maximum height of the projectile.</li></ul>" +'<img src="velocity.png"style="  height:100px; width:300px;">' 
+            document.getElementById("content").innerHTML = knowledgetext;
+            $("#result").text("Target Missed, Try Again");
+            svg.selectAll("rect")
+                    .attr("class", "rect")
+                    .attr("width", 100)
+                    .attr("height", 30)
+                    .attr("fill", "orange");
+        }
+    }
     }
 
+    function storyboard() {
+
+            text = 'Hey, let us learn about Projectile Motion by a playing a fun game and understanding the concepts. <br><br> <b>Why Projectile Motion? </b><br>Projectile motion is one of the important concepts in Physics, used in number of real life application like Rockets & Missiles, Sports and Extinguishing Fire. Our idea behind this application is to give user a practical understanding of projectile motion and also teach concepts related to it.<br><br> <b>What is Projectile Motion? </b><br>An object when thrown at an angle from a surface under a gravitational force of the planet takes a parabolic path. This motion of the object along parabolic path is called projectile motion.  <br><br> <b>What factors play a role in Projectile Motion? </b><br>The path of the object varies depending on three factors, namely, Initial Velocity at projection, Angle of projection and Gravitational force acting on the object. We ignore air resistance thus not considering mass in our calculations (All objects would have similar path).<br><br> <b>Things to know about this Application? </b><br>Our application takes three inputs from user, Initial velocity (manual input), Angle of Projection (slide bar) and Gravity (selection from dropdown). Once the Strike button is pressed, the path of the object is traced visually and it is indicated if the target was hit or missed. User can change the values based on the understanding of the previous attempt given on the left side of the projectile. <br><br> <b>Salient features of this Application? </b><br> Important concepts of Projectile motion like Time of Flight, Maximum height, Range of Projectile can be understood easily and also velocity vectors at each point of the flight is visually depicted on hover over the path of the projectile. <br><br> Disclaimer : For best experience enter Intial velocity greater than 20 m/s. '
+
+            $("#dialog-confirm").dialog({
+                resizable: true,
+                height: 550,
+                width: 700,
+                modal: true,
+                open: function () {
+                    var markup = text;
+                    $(this).html(markup);
+                },
+                buttons: {
+                    "Start": function () {
+                        $(this).dialog("close");
+                    }
+
+                },
+            });
+    }
     function createtarget(){
-        var random = Math.random()*700
+
         lineData = [1,2,3]
         svg.selectAll("rect")
                 .data(lineData)
@@ -95,7 +290,7 @@
                 .attr("y", h-25)
                 .attr("width",100)
                 .attr("height",30)
-                .attr("fill","#F5D76E");
+                .attr("fill","orange");
 
         svg.selectAll("text")
                 .data(lineData)
@@ -109,96 +304,104 @@
                 .attr("fill", "#22313F");
     }
 
+    function createaxis(){
 
-//    function rescaleXAxis() {
-//        xScale.domain([0,document.getElementById("range").value])
-//        d3.select(".xaxis")
-//                .transition().duration(1500).ease("sin-in-out")
-//                .call(xaxis);
-//
-//    }
-//
-//    function rescaleYAxis() {
-//        yScale.domain([document.getElementById("maxHeight").value,0])
-//        d3.select(".yaxis")
-//                .transition().duration(1500).ease("sin-in-out")
-//                .call(yaxis);
-//
-//    }
-
-    function createsvgelements() {
-
-        var xScale = d3.scale.linear()
-                .domain([0, 1300])
-                .range([0, 1300]);
         var yScale = d3.scale.linear()
                 .domain([500, 0])
                 .range([0, 500]);
+        var xScale = d3.scale.linear()
+                .domain([0, 1300])
+                .range([0, 1300]);
 
         var xaxis = d3.svg.axis().scale(xScale).orient("bottom");
         var yaxis = d3.svg.axis().scale(yScale).orient("left");
 
         svg.append("g")
                 .attr("class", "xaxis")
-                .attr("transform", "translate(30," + (h+5) + ")")
-                .call(xaxis);
+                .attr("transform", "translate(30," + (h) + ")")
+                .call(xaxis)
+                .append("text")
+                    .attr("y", 52)
+                    .attr("x", 970)
+                    .attr("dy", "-3em")
+                    .style("text-anchor", "end")
+                    .text("Range (m)");
 
         svg.append("g")
                 .attr("class", "yaxis")
-                .attr("transform", "translate(" + padding + ",05)")
-                .call(yaxis);
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yaxis)
+                .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 48)
+                    .attr("x", -20)
+                    .attr("dy", "-3em")
+                    .style("text-anchor", "end")
+                    .text("Height (meters)");
+    }
 
-        lineData = constructverticalheight(1300);
-//
-        svg.selectAll("circle")
-                .data(lineData)
-                .enter().append("circle")
-                .attr("r", 10)
-//                .attr("fill", "red")
-                .attr("cx", 30)
-                .attr("cy", h-5 );
 
-        svg.selectAll("circle")
-                .transition()
-                .delay(50)
-                .duration(700)
-                .attr("fill", "none")
-                .attr("stroke", "red")
-                .attr("cx", function(d, i){return d["x"]})
-                .attr("cy", function(d, i){return d["y"]})
-                .ease("linear");
+    function createsvgelements(angle) {
 
-        var path = svg.append("path")
-                .data([lineData])
-                .attr("d", d3.svg.line()
-                        .tension(0) // Catmull–Rom
-                        .interpolate("linear"));
+        lineData = constructverticalheight(1300, angle);
+       svg.selectAll("circle")
+               .data(lineData)
+               .enter().append("circle")
+               .attr("r", 5)
+               .attr("cx", 30)
+               .attr("cy", h-5 );
 
-        var circle = svg.append("circle")
-                .attr("r", 13)
-                .attr("transform", "translate(" + lineData[0] + ")");
+       svg.selectAll("circle")
+            .on("mouseover", function(d){
+                        onClick(d["x"], d["y"]) })
 
-        transition();
+            .on("mouseout", function(d){
+                        onClick1()
+                        })
+               .transition()
+//                .delay(50)
+//                .duration(700)
+               .attr("fill", "none")
+               .attr("stroke", "white")
+               .attr("cx", function(d, i){return d["x"]})
+               .attr("cy", function(d, i){return d["y"]})
+               .ease("linear");
 
-        function transition() {
-            circle.transition()
-                    .delay(100)
-                    .duration(1000)
-                    .attrTween("transform", translateAlong(path.node()))
-                    .each("end", transition);
-        }
+       var path = svg.append("path")
+               .data([lineData])
+               .attr("d", d3.svg.line()
+                       // .tension(0) 
+                       .interpolate("linear"));
 
-// Returns an attrTween for translating along the specified path element.
-        function translateAlong(path) {
-            var l = path.getTotalLength();
-            return function(d, i, a) {
-                return function(t) {
-                    var p = path.getPointAtLength(t * l);
-                    return "translate(" + p.x + "," + p.y + ")";
-                };
-            };
-        }
-        console.log(lineData);
+       var circle = svg.append("circle")
+               .attr("r", 8)
+               .attr("transform", "translate(" + lineData[0] + ")");
+
+       transition();
+
+       function transition() 
+
+       {
+            if (count<2){
+                count +=1
+                circle.transition()
+                   .delay(100)
+                   .duration(1000)
+                   .attrTween("transform", translateAlong(path.node()))
+                   .each("end", transition);}
+       }
+
+   
+       function translateAlong(path) {
+           var l = path.getTotalLength();
+           return function(d, i, a) {
+               return function(t) {
+                   var p = path.getPointAtLength(t * l);
+                   return "translate(" + p.x + "," + p.y + ")";
+               };
+           };
+       }
+        
         var lineFunction = d3.svg.line()
                 .x(function (d) {
                     return d.x;
@@ -208,29 +411,30 @@
                 })
                 .interpolate("linear");
 
-        // add element and transition in
+        
         var path = svg.append('path')
                 .attr('class', 'line')
-                .attr("stroke", "blue")
-                .attr("stroke-width", 2)
+
+                .attr("stroke", function (d) {
+                                    if (count < 2) {return 'blue'}
+                                    else{return 'blue'} })
+                .attr("stroke-width", 4)
                 .attr("fill", "none")
                 .attr('d', lineFunction(lineData[0]))
                 .transition()
-//                .delay(1000)
-                .duration(1000)
+                .duration(500)
                 .attrTween('d', pathTween);
 
-//                var circle = svg.append('path')
-//                .attr('class', 'circle')
-//                .attr("stroke", "blue")
-//                .attr("stroke-width", 2)
-//                .attr("fill", "none")
-//                .attr('d', lineFunction(lineData[0]))
-//                .transition()
-//                .duration(1000)
-//                .attrTween('d', pathTween);
-//
 
+            d3.select("svg")
+                .append("line")
+                .attr("class",'vertheight')
+                .attr("x1",(range/2)+30)
+                .attr("y1",h - maxHeight +5)
+                .attr("x2",(range/2)+30)
+                .attr("y2",h +5)
+                .style("stroke","red")
+                .style("stroke-width", 2.5);
 
         function pathTween() {
             var interpolate = d3.scale.quantile()
@@ -241,41 +445,174 @@
 
             };
         }
+
+        function onClick1(){
+            d3.selectAll("rect.vector").remove();
+            d3.selectAll("text.vectortext").remove();
+            d3.selectAll("text.vectortext1").remove();
+            d3.selectAll("text.vectortext2").remove();
+            d3.selectAll("text.vectortext3").remove();
+            d3.selectAll("line.horzvector").remove();
+            d3.selectAll("line.vertvector").remove();
+        }
+
+        function onClick(xCoordinate, yCoordinate){
+
+            var x = xCoordinate -30;
+            var y = h-yCoordinate +5;
+
+            console.log(x);
+            console.log(y);
+            var vel = document.getElementById("initialvelocity").value;
+            var angle = document.getElementById("amount").value;
+            var angle = angle*(Math.PI)/180;
+            var gravity = document.getElementById("gravity").value;
+            var time = x/(vel*Math.cos(angle));
+
+            // console.log("bantay")
+            console.log(vel);
+            console.log(angle);
+            console.log(gravity);
+            console.log(time);
+
+            horvel = vel*Math.cos(angle);
+            vertvel = vel*Math.sin(angle) - gravity*time; 
+
+            resultantvel = Math.sqrt((horvel*horvel) + (vertvel*vertvel)).toFixed(2);
+
+            horvelratio = horvel/(Math.abs(horvel) + Math.abs(vertvel));
+            vertvelratio = vertvel/(Math.abs(horvel) + Math.abs(vertvel));
+
+            time = time.toFixed(2)
+
+            console.log(horvel);
+            console.log(vertvel);         
+
+
+            // dataload = ["At t = " +time+ " seconds", "Horizontal velocity = " +horvel+ ", Vertical velocity = " +vertvel , ", Resultant velocity = " +horvel^2 ];
+            d3.selectAll("rect.vector").remove();
+            d3.selectAll("text.vectortext").remove();
+            d3.selectAll("text.vectortext1").remove();
+            d3.selectAll("text.vectortext2").remove();
+            d3.selectAll("text.vectortext3").remove();
+            d3.selectAll("line.horzvector").remove();
+            d3.selectAll("line.vertvector").remove();
+            
+
+            d3.select("svg") 
+                .append("text")
+                .attr("class",'vectortext')
+                .text("At t = " +time+ " seconds")
+                .attr("x",x+40)
+                .attr("y",yCoordinate-90)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("fill", "#22313F")
+
+            d3.select("svg")  
+                .append("text")
+                .attr("class",'vectortext1')
+                .text("Horizontal velocity = " +horvel.toFixed(2) )
+                .attr("x",x+40)
+                .attr("y",yCoordinate-70)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("fill", "#22313F")
+
+
+            d3.select("svg") 
+                .append("text")
+                .attr("class",'vectortext2')
+                .text(" Vertical velocity = " +vertvel.toFixed(2))
+                .attr("x",x+40)
+                .attr("y",yCoordinate-50)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("fill", "#22313F")
+
+
+            d3.select("svg") 
+                .append("text")
+                .attr("class",'vectortext3')
+                .text("Resultant velocity = " +resultantvel)
+                .attr("x",x+40)
+                .attr("y",yCoordinate-30)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("fill", "#22313F")
+
+            d3.select("svg")
+                .append("svg:defs")
+                 .append("svg:marker")
+                  .attr("id", "arrow")
+                  .attr("viewBox", "0 0 10 10")
+                  .attr("refX", 2)
+                  .attr("refY", 5)
+                  .attr("markerUnits", "strokeWidth")
+                  .attr("markerWidth", 8)
+                  .attr("markerHeight", 6)
+                  .attr("orient", "auto")
+                  .append("svg:path")
+                  .attr("d", "M 0 0 L 10 5 L 0 10 z")
+
+
+            d3.select("svg")
+                .append("line")
+                .attr("class",'horzvector')
+                .attr("x1",x+30)
+                .attr("y1",yCoordinate)
+                .attr("x2",x+30 + horvelratio*100)
+                .attr("y2",yCoordinate)
+                .attr("marker-end","url(#arrow)")
+                .attr("text-anchor", "yooooo")
+                .style("stroke","black")
+                .style("stroke-width", 2.5);
+
+            d3.select("svg")
+                .append("line")
+                .attr("class",'vertvector')
+                .attr("x1",x+30)
+                .attr("y1",yCoordinate)
+                .attr("x2",x+30)
+                .attr("y2",yCoordinate-(vertvelratio*100))
+                .attr("marker-end","url(#" + type[0] + ")")
+                .style("stroke","black")
+                .style("stroke-width", 2.5);
+
+        }        
     }
 
-    function constructverticalheight(xmax){
+    function constructverticalheight(xmax, angle){
 
         var initialVelocity = document.getElementById("initialvelocity").value;
-        var angle = document.getElementById("angle").value;
-//        if (typeof angle != 'number' || typeof initialVelocity != 'number'  ){alert("Please input only numeric values");}
-//        else{
+        var angle = angle;
+        console.log(angle);
         if (angle<0 || angle>90){alert("Angle should be between 0 and 90 degrees");}
         else{
         var gravity = document.getElementById("gravity").value;
         var angle = angle*(Math.PI)/180
         console.log(initialVelocity);
 
-        var flighttime = ((2 * initialVelocity * Math.sin(angle))/gravity);
-        document.getElementById("flighttime").value = flighttime.toFixed(2);
+            var flighttime = ((2 * initialVelocity * Math.sin(angle))/gravity);
+            $("#flighttime").text(flighttime.toFixed(2));
 
-        var maxHeight = (((initialVelocity * initialVelocity) * ((1 - Math.cos(2 * (angle)))/2))/(2 * gravity));
-        document.getElementById("maxHeight").value = maxHeight.toFixed(2);
+            maxHeight = (((initialVelocity * initialVelocity) * ((1 - Math.cos(2 * (angle)))/2))/(2 * gravity));
+            $("#maxHeight").text(maxHeight.toFixed(2));
 
-        var range = (((initialVelocity * initialVelocity)*(Math.sin(2 * angle)))/gravity);
-        document.getElementById("range").value = range.toFixed(2);
+            range = (((initialVelocity * initialVelocity)*(Math.sin(2 * angle)))/gravity);
+            $("#range").text(range.toFixed(2));
 
         var linedata = [];
         x = 0;
         xvalues =[]
         while (x<xmax){
             xvalues.push(x)
-            x+=25;
+            x+=0.25;
         }
         console.log(xvalues);
         var yvalues = [];
         for (var i = 0; i < xvalues.length; i++){
             var verticalheight = (Math.tan(angle) * xvalues[i])  - (gravity/(2 * (Math.pow(initialVelocity,2)*((1 + Math.cos(2 * (angle)))/2)))) * (Math.pow(xvalues[i],2));
-//            verticalheight = verticalheight ;
             if (verticalheight>0){
                 var d = { "x":xvalues[i]+30 ,   "y": h - verticalheight+5};
                 yvalues.push(verticalheight);
@@ -283,8 +620,23 @@
         }
         console.log(yvalues);
         return linedata;}
-//    }
     }
+
+    var $slider;
+    $slider = $(function () {
+        $("#slider").slider({
+            min: 1,
+            max: 89,
+            step: 1,
+            value : 45,
+            slide: function (event, ui) {
+
+                angle = ui.value;
+                $("#amount").val(ui.value)
+            },
+        });
+        $( "#amount" ).val(  $( "#slider" ).slider( "values", 0 ));
+    }) ;
 
 </script>
 </body>
